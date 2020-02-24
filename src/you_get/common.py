@@ -893,7 +893,18 @@ class DummyProgressBar:
         pass
 
 
+def _auto_filename(title, **kwargs):
+    """Returns filename with index prefixed (if any)."""
+    index = kwargs.get('index')
+    if index is not None:
+        # Hardcode to 3 digits for now, needs max-index to auto compute.
+        return '%03d %s' % (int(index), title)
+    else:
+        return title
+
+
 def get_output_filename(urls, title, ext, output_dir, merge, **kwargs):
+
     # lame hack for the --output-filename option
     global output_filename
     if output_filename:
@@ -919,7 +930,8 @@ def get_output_filename(urls, title, ext, output_dir, merge, **kwargs):
                 merged_ext = 'mkv'
             else:
                 merged_ext = 'ts'
-    result = title
+
+    result = _auto_filename(title, **kwargs)
     if kwargs.get('part', -1) >= 0:
         result = '%s[%02d]' % (result, kwargs.get('part'))
     result = '%s.%s' % (result, merged_ext)
@@ -962,7 +974,8 @@ def download_urls(
             pass
 
     title = tr(get_filename(title))
-    output_filename = get_output_filename(urls, title, ext, output_dir, merge)
+    output_filename = get_output_filename(urls, title, ext, output_dir, merge,
+                                          **kwargs)
     output_filepath = os.path.join(output_dir, output_filename)
 
     if total_size:
@@ -993,7 +1006,9 @@ def download_urls(
         print('Downloading %s ...' % tr(output_filename))
         bar.update()
         for i, url in enumerate(urls):
-            output_filename_i = get_output_filename(urls, title, ext, output_dir, merge, part=i)
+            output_filename_i = get_output_filename(urls, title, ext,
+                                                    output_dir, merge, part=i,
+                                                    **kwargs)
             output_filepath_i = os.path.join(output_dir, output_filename_i)
             parts.append(output_filepath_i)
             # print 'Downloading %s [%s/%s]...' % (tr(filename), i + 1, len(urls))
